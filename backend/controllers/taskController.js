@@ -1,6 +1,6 @@
 const Task = require("../models/Task");
 const Log = require("../models/Log");
-const User = require("../models/User");
+const User = require("../models/user");
 const { getIO } = require("../socket");
 const smartAssign = require("../utils/smartAssign");
 
@@ -21,7 +21,8 @@ exports.createTask = async (req, res) => {
     const task = await Task.create({ title, description, priority });
     await Log.create({ user: req.user._id, action: "Created task", taskId: task._id });
 
-    getIO().emit("taskCreated", task);
+    // getIO().emit("taskCreated", task);
+    getIO().emit("task_updated");
     res.status(201).json(task);
   } catch (err) {
     res.status(500).json({ message: err.message });

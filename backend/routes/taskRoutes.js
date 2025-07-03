@@ -7,8 +7,8 @@ const {
 } = require("../controllers/taskController");
 const { protect } = require("../middleware/authMiddleware");
 const Task = require("../models/Task");
-const User = require("../models/User");
-const { logAction } = require("../utils/logger");
+const User = require("../models/user");
+// const { logAction } = require("../utils/logger");
 const { io } = require("../socket");
 
 // Get all tasks
@@ -43,7 +43,7 @@ router.put("/:id", protect, async (req, res) => {
     );
 
     io.emit("task_changed");
-    logAction(req.user._id, `updated task: ${updated.title}`);
+    // logAction(req.user._id, `updated task: ${updated.title}`);
     res.json(updated);
   } catch (err) {
     console.error("Update error:", err);
@@ -78,7 +78,7 @@ router.post("/:id/smart-assign", protect, async (req, res) => {
     await task.save();
 
     io.emit("task_changed");
-    logAction(req.user._id, `smart-assigned task '${task.title}' to ${leastBusy.name}`);
+    // logAction(req.user._id, `smart-assigned task '${task.title}' to ${leastBusy.name}`);
     res.json(task);
   } catch (err) {
     console.error("Smart assign failed", err);
