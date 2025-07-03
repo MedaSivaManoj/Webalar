@@ -8,16 +8,22 @@ const TypingEffect = ({ text = "", speed = 60 }) => {
     const sanitizedText = String(text);
     console.log("✅ TypingEffect received:", sanitizedText);
 
+
+
     let i = 0;
     setDisplayed(""); // reset before typing
 
     const interval = setInterval(() => {
-      if (i < 35) {
-        setDisplayed((prev) => prev + sanitizedText[i]);
-        i++;
-      } else {
-        clearInterval(interval);
-      }
+      setDisplayed((prev) => {
+        if (i < sanitizedText.length) {
+          const next = prev + sanitizedText[i];
+          i++;
+          return next;
+        } else {
+          clearInterval(interval);
+          return prev;
+        }
+      });
     }, speed);
 
     return () => clearInterval(interval);
