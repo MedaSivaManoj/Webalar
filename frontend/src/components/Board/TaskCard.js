@@ -20,18 +20,48 @@ const TaskCard = ({ task, socket, user, onEdit }) => {
   };
 
   const handleDelete = async () => {
-    await axios.delete(`${process.env.REACT_APP_API}/api/tasks/${task._id}`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    });
-    socket.emit("task_changed");
+    try {
+      await axios.delete(`${process.env.REACT_APP_API}/api/tasks/${task._id}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      // Do NOT emit or fetch here; let the socket event handle it
+    } catch (err) {
+      alert("Failed to delete task. Please try again or refresh the page.");
+    }
   };
+
+  // Priority label mapping
+  const priorityLabel = typeof task.priority === "number"
+    ? ["Low", "Medium", "High"][task.priority] || "Low"
+    : (task.priority || "Low");
+
+
+  // Assigned user name
+  const assignedName = task.assignedTo?.username || task.assignedTo?.email || task.assignedTo || "None";
+
+  // Created by user name
+  const createdByName = task.createdBy?.username || task.createdBy?.email || task.createdBy || "Unknown";
 
   return (
     <div className="task-card" draggable onDragStart={handleDragStart}>
-      <h4>{task.title}</h4>
-      <p>{task.description}</p>
-      <p className="assigned">Assigned: {task.assigned_user?.username || "None"}</p>
-      <p className="priority">Priority: {task.priority}</p>
+      <div style={{ marginBottom: 4 }}>
+        <span style={{ fontWeight: "bold" }}>Title: </span>{task.title}
+      </div>
+      <div style={{ marginBottom: 4 }}>
+        <span style={{ fontWeight: "bold" }}>Description: </span>{task.description}
+      </div>
+      <div style={{ marginBottom: 4 }}>
+        <span style={{ fontWeight: "bold" }}>Assignee: </span>{assignedName}
+      </div>
+      <div style={{ marginBottom: 4 }}>
+        <span style={{ fontWeight: "bold" }}>Created By: </span>{createdByName}
+      </div>
+      <div style={{ marginBottom: 4 }}>
+        <span style={{ fontWeight: "bold" }}>Priority: </span>{priorityLabel}
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <span style={{ fontWeight: "bold" }}>Status: </span>{task.status}
+      </div>
       <div className="task-actions">
         <button onClick={handleSmartAssign}>Smart Assign</button>
         <button onClick={() => onEdit(task)}>Edit</button>

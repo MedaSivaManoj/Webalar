@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef, useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../../context/AuthContext";
+
 
 const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
+  const { user } = useContext(AuthContext);
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
   const [priority, setPriority] = useState(task?.priority || "Low");
   const [assignedTo, setAssignedTo] = useState(task?.assignedTo || "");
+  const [status, setStatus] = useState(task?.status || "Todo");
+  const [users, setUsers] = useState([]);
+  const intervalRef = useRef();
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -12,8 +20,38 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
     setDescription(task?.description || "");
     setPriority(task?.priority || "Low");
     setAssignedTo(task?.assignedTo || "");
+    setStatus(task?.status || "Todo");
     setError("");
   }, [task]);
+
+  // Fetch users for assignment dropdown, and poll every 3 seconds while modal is open
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Use user.token from context if available
+        const token = user?.token || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")).token : null);
+        if (!token) return setUsers([]);
+        const res = await axios.get(`${process.env.REACT_APP_API}/api/tasks/users/all`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Defensive: ensure users is always an array of objects with _id, username, email
+        if (Array.isArray(res.data) && res.data.length && typeof res.data[0] === 'object') {
+          setUsers(res.data);
+        } else {
+          setUsers([]);
+        }
+      } catch (err) {
+        setUsers([]);
+      }
+    };
+    if (isOpen) {
+      fetchUsers();
+      intervalRef.current = setInterval(fetchUsers, 3000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [isOpen]);
 
   const handleSubmit = () => {
     const reserved = ["Todo", "In Progress", "Done"];
@@ -40,6 +78,7 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
       description,
       priority: priorityMap[priority] ?? 0,
       assignedTo,
+      status,
     });
   };
 
@@ -77,55 +116,94 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
           {task ? "Edit Task" : "New Task"}
         </h3>
         {error && <p className="error">{error}</p>}
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={{
-            borderRadius: 8,
-            border: "1px solid #90caf9",
-            background: "#f8fbff",
-            marginBottom: 8,
-          }}
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={{
-            borderRadius: 8,
-            border: "1px solid #90caf9",
-            background: "#f8fbff",
-            marginBottom: 8,
-          }}
-        />
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          style={{
-            borderRadius: 8,
-            border: "1px solid #90caf9",
-            background: "#f8fbff",
-            marginBottom: 8,
-          }}
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Assign to (user id)"
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value)}
-          style={{
-            borderRadius: 8,
-            border: "1px solid #90caf9",
-            background: "#f8fbff",
-            marginBottom: 8,
-          }}
-        />
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Title</label>
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Description</label>
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Assigned To</label>
+          <select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          >
+            <option value="">Assign to...</option>
+            {users.map((u) => (
+              <option key={u._id} value={u._id}>
+                {u.username} ({u.email})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Priority</label>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          >
+            <option value="Todo">Todo</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
         <div className="modal-actions">
           <button
             onClick={handleSubmit}
