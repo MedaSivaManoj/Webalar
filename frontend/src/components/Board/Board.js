@@ -461,7 +461,7 @@ const Board = () => {
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              transition: 'box-shadow 0.2s, background 0.3s, border 0.3s',
+              transition: 'box-shadow 0.3s, background 0.3s, border 0.3s',
               animation: 'fadeInCol 0.5s',
               animationDelay: `${idx * 0.08}s`,
               animationFillMode: 'backwards',

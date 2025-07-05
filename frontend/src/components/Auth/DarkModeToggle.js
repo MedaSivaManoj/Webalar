@@ -23,7 +23,7 @@ const DarkModeToggle = ({ darkMode, onToggle }) => (
     {darkMode ? (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8" fill="#fff" stroke="#1976d2" strokeWidth="2"/><path d="M11 3a8 8 0 0 0 0 16 8 8 0 0 1 0-16z" fill="#1976d2"/></svg>
     ) : (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8" fill="#1976d2" stroke="#1976d2" strokeWidth="2"/><path d="M11 3v2M11 17v2M3 11h2M17 11h2M5.64 5.64l1.42 1.42M15.54 15.54l1.42 1.42M5.64 16.36l1.42-1.42M15.54 6.46l1.42-1.42" stroke="#fff" strokeWidth="1.5"/></svg>
+      <svg width="22 " height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8" fill="#1976d2" stroke="#1976d2" strokeWidth="2"/><path d="M11 3v2M11 17v2M3 11h2M17 11h2M5.64 5.64l1.42 1.42M15.54 15.54l1.42 1.42M5.64 16.36l1.42-1.42M15.54 6.46l1.42-1.42" stroke="#fff" strokeWidth="1.5"/></svg>
     )}
   </button>
 );
