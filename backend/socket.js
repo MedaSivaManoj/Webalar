@@ -17,7 +17,11 @@ function setupSocket(server) {
   });
 }
 
+
 function getIO() {
+  if (!io) {
+    throw new Error("Socket.io not initialized! Call setupSocket(server) first.");
+  }
   return io;
 }
 

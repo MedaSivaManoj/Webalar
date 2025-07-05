@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -17,7 +17,7 @@ const Board = () => {
   const [editTask, setEditTask] = useState(null);
   const [conflict, setConflict] = useState(null);
 
-  const socket = io(process.env.REACT_APP_API);
+  const socket = useRef();
 
   const fetchTasks = async () => {
     const res = await axios.get(`${process.env.REACT_APP_API}/api/tasks`, {
@@ -39,12 +39,22 @@ const Board = () => {
     fetchTasks();
     fetchLogs();
 
-    socket.emit("join", user._id);
+    if (!socket.current) {
+      socket.current = io(process.env.REACT_APP_API);
+    }
 
-    socket.on("task_updated", () => fetchTasks());
-    socket.on("log_updated", () => fetchLogs());
+    socket.current.emit("join", user._id);
+    socket.current.on("task_changed", fetchTasks);
+    socket.current.on("log_updated", fetchLogs);
 
-    return () => socket.disconnect();
+    return () => {
+      if (socket.current) {
+        socket.current.off("task_changed", fetchTasks);
+        socket.current.off("log_updated", fetchLogs);
+        socket.current.disconnect();
+        socket.current = null;
+      }
+    };
   }, []);
 
   const onDragEnd = async (e, newStatus) => {
@@ -52,12 +62,33 @@ const Board = () => {
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;
 
-    await axios.put(
-      `${process.env.REACT_APP_API}/api/tasks/${taskId}`,
-      { status: newStatus, version: task.version },
-      { headers: { Authorization: `Bearer ${user.token}` } }
-    );
-    socket.emit("task_changed");
+    // Send only schema fields to backend
+    const updatedTask = {
+      title: task.title,
+      description: task.description,
+      assignedTo: task.assignedTo?._id || task.assignedTo || null,
+      status: newStatus,
+      priority: task.priority,
+      version: task.version,
+    };
+
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API}/api/tasks/${taskId}`,
+        updatedTask,
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      // Do NOT emit or fetch here; let the socket event handle it
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setConflict({
+          server: err.response.data.serverVersion,
+          client: err.response.data.clientVersion,
+        });
+      } else {
+        alert("Failed to move task. Please try again or refresh the page.");
+      }
+    }
   };
 
   return (
@@ -69,7 +100,7 @@ const Board = () => {
             status={status}
             tasks={tasks.filter((t) => t.status === status)}
             onDrop={onDragEnd}
-            socket={socket}
+            socket={socket.current}
             user={user}
             setEditTask={setEditTask}
             setShowModal={setShowModal}
@@ -112,7 +143,7 @@ const Board = () => {
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
 
-            socket.emit("task_changed");
+            // Do NOT emit or fetch here; let the socket event handle it
             setEditTask(null);
             setShowModal(false);
           } catch (err) {
@@ -143,7 +174,7 @@ const Board = () => {
               merged,
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
-            socket.emit("task_changed");
+            // Do NOT emit or fetch here; let the socket event handle it
             setConflict(null);
             setEditTask(null);
             setShowModal(false);
@@ -158,7 +189,7 @@ const Board = () => {
               overwrite,
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
-            socket.emit("task_changed");
+            // Do NOT emit or fetch here; let the socket event handle it
             setConflict(null);
             setEditTask(null);
             setShowModal(false);

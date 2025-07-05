@@ -8,9 +8,12 @@ const LogPanel = ({ logs }) => {
         {logs.map((log) => (
           <li key={log._id}>
             <span className="timestamp">
-              {new Date(log.timestamp).toLocaleString()}
+              {new Date(log.timestamp || log.createdAt).toLocaleString()}
             </span>{" "}
             <strong>{log.user?.username || "Unknown"}</strong> {log.action}
+            {log.taskId && log.taskId.title && (
+              <span> on <strong>{log.taskId.title}</strong></span>
+            )}
           </li>
         ))}
       </ul>

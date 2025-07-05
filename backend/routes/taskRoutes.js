@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 const {
@@ -9,7 +10,7 @@ const { protect } = require("../middleware/authMiddleware");
 const Task = require("../models/Task");
 const User = require("../models/user");
 // const { logAction } = require("../utils/logger");
-const { io } = require("../socket");
+const { getIO } = require("../socket");
 
 // Get all tasks
 router.get("/", protect, getTasks);
@@ -33,17 +34,52 @@ router.put("/:id", protect, async (req, res) => {
       });
     }
 
+    // Remove immutable fields from update object
+    const { _id, createdAt, updatedAt, ...updateFields } = req.body;
     const updated = await Task.findByIdAndUpdate(
       req.params.id,
       {
-        ...req.body,
+        ...updateFields,
         version: existing.version + 1,
       },
       { new: true }
     );
 
-    io.emit("task_changed");
-    // logAction(req.user._id, `updated task: ${updated.title}`);
+    // Log the update action for all changes
+    const userId = req.user?._id || (req.user && req.user.id);
+    let actions = [];
+    if (updateFields.status && updateFields.status !== existing.status) {
+      actions.push(`Changed status from ${existing.status} to ${updateFields.status}`);
+    }
+    if (updateFields.assignedTo && String(updateFields.assignedTo) !== String(existing.assignedTo)) {
+      actions.push(`Assigned to user ${updateFields.assignedTo}`);
+    }
+    if (updateFields.title && updateFields.title !== existing.title) {
+      actions.push(`Changed title from '${existing.title}' to '${updateFields.title}'`);
+    }
+    if (updateFields.description && updateFields.description !== existing.description) {
+      actions.push(`Changed description`);
+    }
+    if (updateFields.priority !== undefined && updateFields.priority !== existing.priority) {
+      actions.push(`Changed priority from ${existing.priority} to ${updateFields.priority}`);
+    }
+    if (actions.length === 0) {
+      actions.push("Updated task");
+    }
+    for (const action of actions) {
+      await require("../models/Log").create({
+        user: userId,
+        action,
+        taskId: req.params.id,
+      });
+    }
+
+    try {
+      getIO().emit("log_updated");
+      getIO().emit("task_changed");
+    } catch (e) {
+      console.error("Socket.io not initialized when emitting events:", e.message);
+    }
     res.json(updated);
   } catch (err) {
     console.error("Update error:", err);
@@ -77,12 +113,27 @@ router.post("/:id/smart-assign", protect, async (req, res) => {
     task.version += 1;
     await task.save();
 
-    io.emit("task_changed");
+    try {
+      getIO().emit("task_changed");
+    } catch (e) {
+      console.error("Socket.io not initialized when emitting events:", e.message);
+    }
     // logAction(req.user._id, `smart-assigned task '${task.title}' to ${leastBusy.name}`);
     res.json(task);
   } catch (err) {
     console.error("Smart assign failed", err);
     res.status(500).json({ error: "Smart assign failed" });
+  }
+});
+
+
+// Get all users (for assignment dropdown)
+router.get("/users/all", protect, async (req, res) => {
+  try {
+    const users = await User.find({}, "_id username email");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 
