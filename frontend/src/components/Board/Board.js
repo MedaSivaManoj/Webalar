@@ -143,7 +143,7 @@ const Board = () => {
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;
 
-    // Send only schema fields to backend
+    // Send only schema fields to backend, with dragAndDrop flag
     const updatedTask = {
       title: task.title,
       description: task.description,
@@ -151,6 +151,7 @@ const Board = () => {
       status: newStatus,
       priority: task.priority,
       version: task.version,
+      dragAndDrop: true // let backend know this was a drag-and-drop
     };
 
     try {

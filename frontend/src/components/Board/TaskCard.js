@@ -51,7 +51,7 @@ const TaskCard = ({ task, socket, user, onEdit }) => {
         <span style={{ fontWeight: "bold" }}>Description: </span>{task.description}
       </div>
       <div style={{ marginBottom: 4 }}>
-        <span style={{ fontWeight: "bold" }}>Assignee: </span>{assignedName}
+        <span style={{ fontWeight: "bold" }}>Assigned To: </span>{assignedName}
       </div>
       <div style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: "bold" }}>Created By: </span>{createdByName}

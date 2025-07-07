@@ -45,23 +45,38 @@ router.put("/:id", protect, async (req, res) => {
       { new: true }
     );
 
-    // Log the update action for all changes
+    // Log the update action for all changes, with user-friendly labels
     const userId = req.user?._id || (req.user && req.user.id);
+    const username = req.user?.username || req.user?.name || "User";
     let actions = [];
+    // Priority mapping
+    const priorityMap = { 0: "low", 1: "medium", 2: "high", "0": "low", "1": "medium", "2": "high" };
     if (updateFields.status && updateFields.status !== existing.status) {
-      actions.push(`Changed status from ${existing.status} to ${updateFields.status}`);
+      actions.push(`${username} moved '${updated.title || existing.title}' from ${existing.status} to ${updateFields.status}.`);
     }
     if (updateFields.assignedTo && String(updateFields.assignedTo) !== String(existing.assignedTo)) {
-      actions.push(`Assigned to user ${updateFields.assignedTo}`);
+      // Try to get user name
+      let assignedUser = null;
+      try {
+        const userDoc = await require("../models/user").findById(updateFields.assignedTo);
+        assignedUser = userDoc?.username || userDoc?.email;
+      } catch {}
+      if (assignedUser) {
+        actions.push(`${username} assigned '${updated.title || existing.title}' to ${assignedUser}.`);
+      } else {
+        actions.push(`${username} changed assignee for '${updated.title || existing.title}'.`);
+      }
     }
     if (updateFields.title && updateFields.title !== existing.title) {
-      actions.push(`Changed title from '${existing.title}' to '${updateFields.title}'`);
+      actions.push(`${username} changed title from '${existing.title}' to '${updateFields.title}'.`);
     }
     if (updateFields.description && updateFields.description !== existing.description) {
-      actions.push(`Changed description`);
+      actions.push(`${username} changed description for '${updated.title || existing.title}'.`);
     }
     if (updateFields.priority !== undefined && updateFields.priority !== existing.priority) {
-      actions.push(`Changed priority from ${existing.priority} to ${updateFields.priority}`);
+      const oldPriority = priorityMap[existing.priority] || existing.priority;
+      const newPriority = priorityMap[updateFields.priority] || updateFields.priority;
+      actions.push(`${username} changed priority from '${oldPriority}' to '${newPriority}' on '${updated.title || existing.title}'.`);
     }
     if (actions.length === 0) {
       actions.push("Updated task");
@@ -113,12 +128,18 @@ router.post("/:id/smart-assign", protect, async (req, res) => {
     task.version += 1;
     await task.save();
 
+    // Log the smart assign action
+    await require("../models/Log").create({
+      user: req.user._id,
+      action: `${req.user.username || "User"} used Smart Assign and '${task.title}' was assigned to ${leastBusy.username || leastBusy.email}.`,
+      taskId: task._id,
+    });
     try {
+      getIO().emit("log_updated");
       getIO().emit("task_changed");
     } catch (e) {
       console.error("Socket.io not initialized when emitting events:", e.message);
     }
-    // logAction(req.user._id, `smart-assigned task '${task.title}' to ${leastBusy.name}`);
     res.json(task);
   } catch (err) {
     console.error("Smart assign failed", err);
