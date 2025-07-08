@@ -15,8 +15,21 @@ const app = express();
 const server = http.createServer(app);
 setupSocket(server);
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://your-netlify-app-name.netlify.app' // Add your Netlify URL here
+];
 
-app.use(cors());
+app.use(cors({ 
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
 
