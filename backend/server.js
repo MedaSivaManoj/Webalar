@@ -15,15 +15,34 @@ const app = express();
 const server = http.createServer(app);
 setupSocket(server);
 
+// Temporarily allow all origins for debugging mobile issues
+app.use(cors({ 
+  origin: "*",
+  credentials: true 
+}));
+
+/* PREVIOUS CORS CONFIGURATION - KEEP FOR LATER
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://webalar-oxoiw2nqw-siva-manoj-medas-projects.vercel.app',
-  'https://webalar-wkr5-333zb8d4a-siva-manoj-medas-projects.vercel.app'
+  /^https:\/\/webalar.*\.vercel\.app$/,
 ];
 
 app.use(cors({ 
   origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -31,6 +50,8 @@ app.use(cors({
   },
   credentials: true 
 }));
+*/
+
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
 

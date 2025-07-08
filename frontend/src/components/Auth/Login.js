@@ -75,7 +75,7 @@ const Login = () => {
           }} />
         ))}
       </div>
-      <div style={{
+      <div className="auth-page-container" style={{
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -89,7 +89,7 @@ const Login = () => {
         padding: '2vw 0',
       }}>
         {/* Left: Project Name Typing Effect */}
-        <div style={{
+        <div className="auth-welcome-container" style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -135,7 +135,7 @@ const Login = () => {
           </div>
         </div>
         {/* Right: Login Form */}
-        <div className="auth-container" style={{
+        <div className="auth-container auth-form-container" style={{
           background: 'linear-gradient(135deg, #fffde4 0%, #fff 100%)',
           boxShadow: '0 8px 32px 0 #ffe29f',
           border: '1px solid #ffe29f',

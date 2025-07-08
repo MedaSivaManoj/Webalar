@@ -301,6 +301,24 @@ body {
   }
 }
 
+/* Responsive adjustments for Login/Register pages */
+@media (max-width: 900px) {
+  .auth-page-container {
+    flex-direction: column !important;
+    padding: 1rem 0 !important;
+  }
+
+  .auth-form-container {
+    margin-left: 0 !important;
+    margin-top: 2rem !important;
+    max-width: 90vw !important;
+  }
+
+  .auth-welcome-container {
+    max-width: 90vw !important;
+  }
+}
+
 .animated-bg {
   position: fixed;
   top: 0;
