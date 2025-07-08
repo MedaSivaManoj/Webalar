@@ -17,7 +17,7 @@ setupSocket(server);
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://your-netlify-app-name.netlify.app' // Add your Netlify URL here
+  'https://webalar-oxoiw2nqw-siva-manoj-medas-projects.vercel.app/' // Add your Netlify URL here
 ];
 
 app.use(cors({ 
