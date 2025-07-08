@@ -15,13 +15,6 @@ const app = express();
 const server = http.createServer(app);
 setupSocket(server);
 
-// Temporarily allow all origins for debugging mobile issues
-app.use(cors({ 
-  origin: "*",
-  credentials: true 
-}));
-
-/* PREVIOUS CORS CONFIGURATION - KEEP FOR LATER
 const allowedOrigins = [
   'http://localhost:3000',
   /^https:\/\/webalar.*\.vercel\.app$/,
@@ -50,7 +43,6 @@ app.use(cors({
   },
   credentials: true 
 }));
-*/
 
 app.use(express.json());
 app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
