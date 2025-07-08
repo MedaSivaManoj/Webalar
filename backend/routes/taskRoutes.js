@@ -5,8 +5,21 @@ const {
   getTasks,
   createTask,
   deleteTask,
+  updateTask,
+  smartAssign,
+  addComment,
+  getComments,
+  uploadAttachment,
+  getAttachments
 } = require("../controllers/taskController");
+const upload = require("../utils/upload");
 const { protect } = require("../middleware/authMiddleware");
+// Attachments endpoints
+router.post('/:id/attachments', protect, upload.single('file'), uploadAttachment);
+router.get('/:id/attachments', protect, getAttachments);
+// Comments endpoints
+router.post('/:id/comments', protect, addComment);
+router.get('/:id/comments', protect, getComments);
 const Task = require("../models/Task");
 const User = require("../models/user");
 // const { logAction } = require("../utils/logger");

@@ -9,9 +9,11 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
   const [priority, setPriority] = useState(task?.priority || "Low");
+  const [dueDate, setDueDate] = useState(task?.dueDate ? new Date(task.dueDate).toISOString().slice(0,16) : "");
   const [assignedTo, setAssignedTo] = useState(task?.assignedTo || "");
   const [status, setStatus] = useState(task?.status || "Todo");
   const [users, setUsers] = useState([]);
+  const [dependencies, setDependencies] = useState(task?.dependencies || []);
   const intervalRef = useRef();
   const [error, setError] = useState("");
 
@@ -22,6 +24,8 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
     setAssignedTo(task?.assignedTo || "");
     setStatus(task?.status || "Todo");
     setError("");
+    setDueDate(task?.dueDate ? new Date(task.dueDate).toISOString().slice(0,16) : "");
+    setDependencies(task?.dependencies || []);
   }, [task]);
 
   // Fetch users for assignment dropdown, and poll every 3 seconds while modal is open
@@ -79,6 +83,8 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
       priority: priorityMap[priority] ?? 0,
       assignedTo,
       status,
+      dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+      dependencies,
     });
   };
 
@@ -202,6 +208,37 @@ const TaskModal = ({ isOpen, onClose, onSave, task, allTasks }) => {
             <option value="Todo">Todo</option>
             <option value="In Progress">In Progress</option>
             <option value="Done">Done</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Due Date</label>
+          <input
+            type="datetime-local"
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
+            style={{
+              borderRadius: 8,
+              border: "1px solid #90caf9",
+              background: "#f8fbff",
+              marginBottom: 0,
+              width: "100%",
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ fontWeight: "bold" }}>Dependencies</label>
+          <select
+            multiple
+            value={dependencies.map(String)}
+            onChange={e => {
+              const options = Array.from(e.target.selectedOptions).map(opt => opt.value);
+              setDependencies(options);
+            }}
+            style={{ borderRadius: 8, border: "1px solid #90caf9", background: "#f8fbff", marginBottom: 0, width: "100%", minHeight: 40 }}
+          >
+            {allTasks.filter(t => !task || t._id !== task._id).map(t => (
+              <option key={t._id} value={t._id}>{t.title}</option>
+            ))}
           </select>
         </div>
         <div className="modal-actions">

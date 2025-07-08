@@ -1,14 +1,15 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-// import DarkModeToggle from "../Auth/DarkModeToggle";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Column from "./Column";
+import AnalyticsDashboard from "./AnalyticsDashboard";
 import LogPanel from "../LogPanel";
 import TaskModal from "./TaskModal";
 import ConflictModal from "./ConflictModal";
 import TypingEffect from "../Auth/TypingEffect";
 import io from "socket.io-client";
+import ShareModal from "./ShareModal";
 
 // Responsive styles for horizontal scroll on mobile
 // You can move this to your CSS file if you prefer
@@ -58,11 +59,10 @@ function injectBoardResponsiveStyle() {
 const ACCENT_COLORS = ["#1976d2", "#388e3c", "#d32f2f", "#fbc02d", "#7b1fa2", "#00838f"];
 
 const Board = () => {
-  // Show/hide profile info in dropdown
-  const [showProfileInfo, setShowProfileInfo] = useState(false);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState({ text: '', assignee: '', status: '', priority: '', overdue: false });
   const [logs, setLogs] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editTask, setEditTask] = useState(null);
@@ -70,7 +70,6 @@ const Board = () => {
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [profileOpen, setProfileOpen] = useState(false);
-  // Persist dark mode and accent color in localStorage
   const [darkMode, setDarkMode] = useState(() => {
     const stored = localStorage.getItem('kanban-dark-mode');
     return stored === null ? false : stored === 'true';
@@ -78,8 +77,45 @@ const Board = () => {
   const [accent, setAccent] = useState(() => {
     return localStorage.getItem('kanban-accent-color') || ACCENT_COLORS[0];
   });
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
 
   const socket = useRef();
+
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `kanban-tasks-${new Date().toISOString().slice(0,10)}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+      if (!Array.isArray(imported)) throw new Error("Invalid format");
+      for (const t of imported) {
+        if (!tasks.find(existing => existing.title === t.title)) {
+          await axios.post(`${process.env.REACT_APP_API}/api/tasks`, {
+            title: t.title,
+            description: t.description,
+            priority: t.priority,
+            assignedTo: t.assignedTo?._id || t.assignedTo,
+            status: t.status,
+            dueDate: t.dueDate,
+          }, { headers: { Authorization: `Bearer ${user.token}` } });
+        }
+      }
+      fetchTasks();
+      alert("Import complete!");
+    } catch {
+      alert("Import failed. Please check your file format.");
+    }
+  };
 
   const fetchTasks = async () => {
     setLoadingTasks(true);
@@ -109,7 +145,6 @@ const Board = () => {
     document.documentElement.style.setProperty('--accent', accent);
   }, [darkMode, accent]);
 
-  // Persist theme changes
   useEffect(() => {
     localStorage.setItem('kanban-dark-mode', darkMode);
   }, [darkMode]);
@@ -138,12 +173,20 @@ const Board = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
+  const filteredTasks = tasks.filter(t => {
+    const matchesText = filter.text === '' || t.title.toLowerCase().includes(filter.text.toLowerCase());
+    const matchesAssignee = filter.assignee === '' || (t.assignedTo && (t.assignedTo.username === filter.assignee || t.assignedTo.email === filter.assignee));
+    const matchesStatus = filter.status === '' || t.status === filter.status;
+    const matchesPriority = filter.priority === '' || String(t.priority) === String(filter.priority);
+    const matchesOverdue = !filter.overdue || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'Done');
+    return matchesText && matchesAssignee && matchesStatus && matchesPriority && matchesOverdue;
+  });
+
   const onDragEnd = async (e, newStatus) => {
     const taskId = e.dataTransfer.getData("taskId");
     const task = tasks.find((t) => t._id === taskId);
     if (!task || task.status === newStatus) return;
 
-    // Send only schema fields to backend, with dragAndDrop flag
     const updatedTask = {
       title: task.title,
       description: task.description,
@@ -151,7 +194,7 @@ const Board = () => {
       status: newStatus,
       priority: task.priority,
       version: task.version,
-      dragAndDrop: true // let backend know this was a drag-and-drop
+      dragAndDrop: true
     };
 
     try {
@@ -160,7 +203,6 @@ const Board = () => {
         updatedTask,
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      // Do NOT emit or fetch here; let the socket event handle it
     } catch (err) {
       if (err.response?.status === 409) {
         setConflict({
@@ -173,7 +215,6 @@ const Board = () => {
     }
   };
 
-  // Board and column backgrounds for theme
   const boardBg = darkMode
     ? 'linear-gradient(120deg, #23272f 0%, #222b38 100%)'
     : 'linear-gradient(120deg, #e3f2fd 0%, #fff 100%)';
@@ -418,7 +459,56 @@ const Board = () => {
 
       </div>
 
-      {/* Main board columns */}
+      {/* Export/Import & Filter/Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, margin: '18px 0 0 0' }}>
+        <button onClick={handleExport} style={{ borderRadius: 6, padding: '6px 16px', fontWeight: 600, background: accent, color: '#fff', border: 'none', cursor: 'pointer' }}>Export</button>
+        <label style={{ borderRadius: 6, padding: '6px 16px', fontWeight: 600, background: accent, color: '#fff', border: 'none', cursor: 'pointer' }}>
+          Import
+          <input type="file" accept="application/json" style={{ display: 'none' }} onChange={handleImport} />
+        </label>
+      </div>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '24px 0 0 0',
+        padding: '0 12px',
+        background: darkMode ? '#23272f' : '#e3f2fd',
+        borderRadius: 12,
+        boxShadow: darkMode ? `0 2px 8px ${accent}33` : '0 2px 8px #bbdefb',
+      }}>
+        <input
+          type="text"
+          placeholder="Search title..."
+          value={filter.text}
+          onChange={e => setFilter(f => ({ ...f, text: e.target.value }))}
+          style={{ borderRadius: 6, border: '1px solid #90caf9', padding: 6, minWidth: 120 }}
+        />
+        <select value={filter.assignee} onChange={e => setFilter(f => ({ ...f, assignee: e.target.value }))} style={{ borderRadius: 6, border: '1px solid #90caf9', padding: 6 }}>
+          <option value="">All Assignees</option>
+          {[...new Set(tasks.map(t => t.assignedTo?.username || t.assignedTo?.email).filter(Boolean))].map(u => (
+            <option key={u} value={u}>{u}</option>
+          ))}
+        </select>
+        <select value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))} style={{ borderRadius: 6, border: '1px solid #90caf9', padding: 6 }}>
+          <option value="">All Statuses</option>
+          <option value="Todo">Todo</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Done">Done</option>
+        </select>
+        <select value={filter.priority} onChange={e => setFilter(f => ({ ...f, priority: e.target.value }))} style={{ borderRadius: 6, border: '1px solid #90caf9', padding: 6 }}>
+          <option value="">All Priorities</option>
+          <option value="0">Low</option>
+          <option value="1">Medium</option>
+          <option value="2">High</option>
+        </select>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
+          <input type="checkbox" checked={filter.overdue} onChange={e => setFilter(f => ({ ...f, overdue: e.target.checked }))} />
+          Overdue Only
+        </label>
+      </div>
       <div
         className={`columns board-gradient-bg board-columns-responsive${darkMode ? ' dark' : ''}`}
         style={{
@@ -473,7 +563,7 @@ const Board = () => {
             <style>{`@keyframes fadeInCol { from { opacity: 0; transform: translateY(24px);} to { opacity: 1; transform: none; }}`}</style>
             <Column
               status={status}
-              tasks={tasks.filter((t) => t.status === status)}
+              tasks={filteredTasks.filter((t) => t.status === status)}
               onDrop={onDragEnd}
               socket={socket.current}
               user={user}
@@ -484,11 +574,16 @@ const Board = () => {
         ))}
       </div>
 
+
+      <div className="analytics-dashboard">
+        <AnalyticsDashboard tasks={tasks} />
+      </div>
+
       {loadingLogs ? (
         <div style={{width:'100%',display:'flex',justifyContent:'center',alignItems:'center',minHeight:100}}>
           <div className="spinner" aria-label="Loading logs" style={{width:32,height:32,border:'5px solid #e3f2fd',borderTop:`5px solid ${accent}`,borderRadius:'50%',animation:'spin 1s linear infinite'}}></div>
         </div>
-      ) : <LogPanel logs={logs} />}
+      ) : <div className="log-panel"><LogPanel logs={logs} /></div>}
 
       <TaskModal
         isOpen={showModal}
@@ -508,7 +603,6 @@ const Board = () => {
               { ...taskData, version: editTask?.version },
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
-            // Do NOT emit or fetch here; let the socket event handle it
             setEditTask(null);
             setShowModal(false);
           } catch (err) {
@@ -539,7 +633,6 @@ const Board = () => {
               merged,
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
-            // Do NOT emit or fetch here; let the socket event handle it
             setConflict(null);
             setEditTask(null);
             setShowModal(false);
@@ -554,7 +647,6 @@ const Board = () => {
               overwrite,
               { headers: { Authorization: `Bearer ${user.token}` } }
             );
-            // Do NOT emit or fetch here; let the socket event handle it
             setConflict(null);
             setEditTask(null);
             setShowModal(false);
@@ -562,6 +654,12 @@ const Board = () => {
           onCancel={() => setConflict(null)}
         />
       )}
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        tasks={tasks}
+      />
     </div>
   );
 }
