@@ -4,7 +4,7 @@
 
 This is a full-stack, real-time, collaborative Kanban board application designed to streamline task management and team workflow. It provides an intuitive and interactive interface where users can create, assign, and track tasks seamlessly. The application is built with a modern tech stack, focusing on performance, real-time capabilities, and a user-friendly experience. It features advanced functionalities like smart task assignment and optimistic UI updates with conflict resolution, making it a powerful tool for team productivity.
 
-The frontend is deployed on **Vercel** and the backend on **Railway**.
+The frontend is deployed on **Vercel** and the backend on **Render**.
 
 ## 🛠️ Tech Stack
 
