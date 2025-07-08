@@ -1,3 +1,68 @@
+// Upload attachment to a task
+exports.uploadAttachment = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const attachment = {
+      filename: req.file.originalname,
+      url: fileUrl,
+      uploadedAt: new Date(),
+      uploadedBy: req.user._id
+    };
+    task.attachments.push(attachment);
+    await task.save();
+    await task.populate({ path: 'attachments.uploadedBy', select: 'username email' });
+    res.status(201).json(attachment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get attachments for a task
+exports.getAttachments = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id).populate({ path: 'attachments.uploadedBy', select: 'username email' });
+    if (!task) return res.status(404).json({ message: "Task not found" });
+    res.json(task.attachments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// Add a comment to a task
+exports.addComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: "Comment text required" });
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+    const comment = {
+      user: req.user._id,
+      text,
+      createdAt: new Date()
+    };
+    task.comments.push(comment);
+    await task.save();
+    await task.populate({ path: 'comments.user', select: 'username email' });
+    // Real-time update
+    getIO().emit("task_comment_added", { taskId: task._id, comment });
+    res.status(201).json(comment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get comments for a task
+exports.getComments = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id).populate({ path: 'comments.user', select: 'username email' });
+    if (!task) return res.status(404).json({ message: "Task not found" });
+    res.json(task.comments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 const Task = require("../models/Task");
 const Log = require("../models/Log");
 const User = require("../models/user");
@@ -13,7 +78,7 @@ exports.getTasks = async (req, res) => {
 
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, priority, assignedTo, status } = req.body;
+    const { title, description, priority, assignedTo, status, dueDate } = req.body;
 
     const exists = await Task.findOne({ title });
     if (["Todo", "In Progress", "Done"].includes(title) || exists) {
@@ -26,6 +91,7 @@ exports.createTask = async (req, res) => {
       priority,
       assignedTo,
       status,
+      dueDate,
       createdBy: req.user._id,
     });
     await Log.create({
@@ -51,6 +117,8 @@ exports.updateTask = async (req, res) => {
     if (!oldTask) return res.status(404).json({ message: "Task not found" });
 
     const updatedFields = req.body;
+    // If dueDate is empty string, remove it
+    if (updatedFields.dueDate === "") delete updatedFields.dueDate;
     const task = await Task.findByIdAndUpdate(req.params.id, updatedFields, { new: true })
       .populate("assignedTo", "_id username")
       .populate("createdBy", "_id username");

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import TaskComments from "./TaskComments";
+import TaskAttachments from "./TaskAttachments";
 import axios from "axios";
 
 const TaskCard = ({ task, socket, user, onEdit }) => {
@@ -51,10 +53,12 @@ const TaskCard = ({ task, socket, user, onEdit }) => {
       draggable
       onDragStart={handleDragStart}
       tabIndex={0}
+      role="button"
+      aria-pressed={flipped}
+      aria-label={flipped ? "Show front of card" : "Show back of card"}
       style={{ perspective: 1000, minHeight: 220, outline: 'none', background: 'transparent', border: 'none', boxShadow: 'none', display: 'flex', alignItems: 'stretch', justifyContent: 'center' }}
       onClick={() => setFlipped(f => !f)}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setFlipped(f => !f); }}
-      aria-label={flipped ? "Show front of card" : "Show back of card"}
     >
       <div className="task-card-inner" style={{
         position: 'relative',
@@ -131,10 +135,11 @@ const TaskCard = ({ task, socket, user, onEdit }) => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           padding: 16,
           boxSizing: 'border-box',
           boxShadow: 'none',
+          overflowY: 'auto',
         }}>
           <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Details</div>
           <div style={{ marginBottom: 10, fontWeight: 600, fontSize: 15 }}>
@@ -143,7 +148,12 @@ const TaskCard = ({ task, socket, user, onEdit }) => {
           <div style={{ marginBottom: 10, fontWeight: 600, fontSize: 15 }}>
             Updated: <span style={{ fontWeight: 400 }}>{task.updatedAt ? new Date(task.updatedAt).toLocaleString() : "-"}</span>
           </div>
-          <div style={{ marginTop: 12, fontSize: 13, color: '#888' }}>(Click or press Enter/Space to flip back)</div>
+          <div style={{ marginBottom: 10, fontWeight: 600, fontSize: 15 }}>
+            Due: <span style={{ fontWeight: 400, color: task.dueDate && new Date(task.dueDate) < new Date() ? 'red' : undefined }}>{task.dueDate ? new Date(task.dueDate).toLocaleString() : "-"}</span>
+          </div>
+          <TaskComments taskId={task._id} user={user} socket={socket} />
+          <TaskAttachments taskId={task._id} user={user} />
+          <div style={{ marginTop: 12, fontSize: 13, color: '#888', textAlign: 'center' }}>(Click or press Enter/Space to flip back)</div>
         </div>
       </div>
     </div>

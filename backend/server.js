@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const logRoutes = require("./routes/logRoutes");
+const boardRoutes = require("./routes/boardRoutes"); // Import board routes
 const { setupSocket } = require("./socket");
 
 dotenv.config();
@@ -14,13 +15,16 @@ const app = express();
 const server = http.createServer(app);
 setupSocket(server);
 
+
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/logs", logRoutes);
+app.use("/api/board", boardRoutes); // Use board routes
 
 // MongoDB connection and server start
 mongoose

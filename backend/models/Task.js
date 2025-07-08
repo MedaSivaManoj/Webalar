@@ -12,6 +12,23 @@ const taskSchema = new mongoose.Schema(
       default: "Todo",
     },
     priority: { type: Number, default: 0 },
+    dueDate: { type: Date },
+    comments: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
+    attachments: [
+      {
+        filename: String,
+        url: String,
+        uploadedAt: { type: Date, default: Date.now },
+        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+      }
+    ],
+    dependencies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
     version: { type: Number, default: 1 }, // ✅ Added version field
   },
   { timestamps: true }

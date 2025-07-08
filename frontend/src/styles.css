@@ -1,3 +1,33 @@
+/* Accessibility and Mobile Improvements */
+.task-card:focus {
+  outline: 2px solid var(--accent, #1976d2);
+  outline-offset: 2px;
+}
+.task-actions button:focus {
+  outline: 2px solid var(--accent, #1976d2);
+  outline-offset: 1px;
+}
+.modal-pop:focus {
+  outline: 2.5px solid #1976d2;
+}
+@media (max-width: 600px) {
+  .task-card-inner {
+    width: 98vw !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    font-size: 15px;
+  }
+  .modal-pop {
+    min-width: 0 !important;
+    max-width: 98vw !important;
+    padding: 8px !important;
+  }
+  .board-column-card {
+    min-width: 98vw !important;
+    max-width: 100vw !important;
+    padding: 8px 2px !important;
+  }
+}
 body {
   margin: 0;
   font-family: sans-serif;
