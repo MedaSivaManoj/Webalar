@@ -170,6 +170,10 @@ const Login = () => {
               <input
                 name="email"
                 placeholder="Email"
+                type="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
                 onChange={handleChange}
                 required
                 style={{
@@ -195,6 +199,9 @@ const Login = () => {
                 name="password"
                 placeholder="Password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                autoCapitalize="none"
+                autoCorrect="off"
                 onChange={handleChange}
                 required
                 style={{
