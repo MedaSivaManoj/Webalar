@@ -17,7 +17,8 @@ setupSocket(server);
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://webalar-oxoiw2nqw-siva-manoj-medas-projects.vercel.app/' // Add your Netlify URL here
+  'https://webalar-oxoiw2nqw-siva-manoj-medas-projects.vercel.app',
+  'https://webalar-wkr5-333zb8d4a-siva-manoj-medas-projects.vercel.app'
 ];
 
 app.use(cors({ 
