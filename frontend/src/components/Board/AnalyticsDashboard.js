@@ -101,41 +101,15 @@ const AnalyticsDashboard = ({ tasks }) => {
   });
 
   return (
-    <div
-      className="analytics-dashboard"
-      style={{
-        background: '#fff',
-        borderRadius: 16,
-        boxShadow: '0 2px 12px #90caf9',
-        padding: 24,
-        margin: '32px auto',
-        maxWidth: 1200,
-        width: '100%',
-      }}
-    >
-      <h2 style={{ fontWeight: 700, color: '#1976d2', marginBottom: 24, textAlign: 'center', fontSize: '2rem' }}>Board Analytics</h2>
-      <div
-        className="analytics-dashboard-flex"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '24px',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: '450px',
-            minWidth: '220px',
-            width: '100%',
-          }}
-        >
-          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 4, fontSize: '1.1rem' }}>
-            Active Tasks per User<br />
+    <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px #90caf9', padding: 24, margin: '32px auto', maxWidth: 1200 }}>
+      <h2 style={{ fontWeight: 700, color: '#1976d2', marginBottom: 24, textAlign: 'center' }}>Board Analytics</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
+        <div style={{ flex: '1 1 300px', maxWidth: '450px', minWidth: '280px' }}>
+          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 4 }}>
+            Active Tasks per User<br/>
             <span style={{ fontWeight: 400, fontSize: 15 }}>(To Do + In Progress)</span>
           </h3>
-          <div style={{ height: 220, width: '100%' }}>
+          <div style={{ height: 250 }}>
             <Bar
               data={{
                 labels: Object.keys(userCounts),
@@ -145,16 +119,9 @@ const AnalyticsDashboard = ({ tasks }) => {
             />
           </div>
         </div>
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: '350px',
-            minWidth: '220px',
-            width: '100%',
-          }}
-        >
-          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12, fontSize: '1.1rem' }}>Tasks by Status</h3>
-          <div style={{ height: 220, width: '100%' }}>
+        <div style={{ flex: '1 1 300px', maxWidth: '350px', minWidth: '280px' }}>
+          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12 }}>Tasks by Status</h3>
+          <div style={{ height: 250 }}>
             <Pie
               data={{
                 labels: Object.keys(statusCounts),
@@ -164,16 +131,9 @@ const AnalyticsDashboard = ({ tasks }) => {
             />
           </div>
         </div>
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: '350px',
-            minWidth: '220px',
-            width: '100%',
-          }}
-        >
-          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12, fontSize: '1.1rem' }}>Tasks by Priority</h3>
-          <div style={{ height: 220, width: '100%' }}>
+        <div style={{ flex: '1 1 300px', maxWidth: '350px', minWidth: '280px' }}>
+          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12 }}>Tasks by Priority</h3>
+          <div style={{ height: 250 }}>
             <Pie
               data={{
                 labels: Object.keys(priorityCounts),
@@ -183,85 +143,40 @@ const AnalyticsDashboard = ({ tasks }) => {
             />
           </div>
         </div>
-        <div
-          style={{
-            flex: '1 1 100%',
-            maxWidth: '100%',
-            minWidth: '220px',
-            marginTop: 24,
-            width: '100%',
-          }}
-        >
-          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12, fontSize: '1.1rem' }}>Tasks Created Over Time</h3>
-          <div style={{ height: 220, width: '100%' }}>
+        <div style={{ flex: '1 1 100%', maxWidth: '90%', minWidth: '280px', marginTop: 24 }}>
+          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12 }}>Tasks Created Over Time</h3>
+          <div style={{ height: 250 }}>
             <Line
               data={{
                 labels: sortedDates.map(d => new Date(d).toLocaleDateString()),
-                datasets: [
-                  {
-                    label: 'Tasks Created',
-                    data: sortedDates.map(d => dateCounts[d]),
-                    fill: true,
-                    backgroundColor: '#1976d220',
-                    borderColor: '#1976d2',
-                    tension: 0.3,
-                  },
-                ],
+                datasets: [{
+                  label: 'Tasks Created',
+                  data: sortedDates.map(d => dateCounts[d]),
+                  fill: true,
+                  backgroundColor: '#1976d220',
+                  borderColor: '#1976d2',
+                  tension: 0.3,
+                }],
               }}
               options={{ plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }}
             />
           </div>
         </div>
-        <div
-          style={{
-            flex: '1 1 100%',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '24px',
-            justifyContent: 'center',
-            marginTop: 24,
-            width: '100%',
-          }}
-        >
-          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 12, borderRadius: 12, minWidth: 120, marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#d32f2f', marginBottom: 6 }}>Overdue Tasks</div>
-            <div style={{ fontSize: 28, fontWeight: 600, color: '#d32f2f' }}>{overdueCount}</div>
+        <div style={{ flex: '1 1 100%', display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center', marginTop: 24 }}>
+          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 16, borderRadius: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: 18, color: '#d32f2f', marginBottom: 8 }}>Overdue Tasks</div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#d32f2f' }}>{overdueCount}</div>
           </div>
-          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 12, borderRadius: 12, minWidth: 120, marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#388e3c', marginBottom: 6 }}>Avg. Completion</div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: '#388e3c' }}>{avgCompletion ? `${avgCompletion} hrs` : 'N/A'}</div>
+          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 16, borderRadius: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: 18, color: '#388e3c', marginBottom: 8 }}>Avg. Completion</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#388e3c' }}>{avgCompletion ? `${avgCompletion} hrs` : 'N/A'}</div>
           </div>
-          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 12, borderRadius: 12, minWidth: 120, marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#1976d2', marginBottom: 6 }}>Most Active User</div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#1976d2' }}>{mostActiveUser || 'N/A'}</div>
+          <div style={{ flex: '1 1 150px', textAlign: 'center', background: '#f5f5f5', padding: 16, borderRadius: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: 18, color: '#1976d2', marginBottom: 8 }}>Most Active User</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#1976d2' }}>{mostActiveUser || 'N/A'}</div>
           </div>
         </div>
       </div>
-      {/* Responsive styles for mobile */}
-      <style>{`
-        @media (max-width: 700px) {
-          .analytics-dashboard {
-            padding: 8px !important;
-            margin: 8px auto !important;
-            border-radius: 8px !important;
-            max-width: 99vw !important;
-          }
-          .analytics-dashboard-flex {
-            flex-direction: column !important;
-            gap: 12px !important;
-          }
-          .analytics-dashboard-flex > div {
-            min-width: 0 !important;
-            max-width: 100vw !important;
-            width: 100% !important;
-            margin-bottom: 8px !important;
-          }
-          .analytics-dashboard-flex h3 {
-            font-size: 1rem !important;
-            margin-bottom: 6px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
