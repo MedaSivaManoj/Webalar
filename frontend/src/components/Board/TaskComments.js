@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../../utils/md5";
@@ -13,6 +12,7 @@ const TaskComments = ({ taskId, user, socket }) => {
 
   useEffect(() => {
     const fetchComments = async () => {
+      if (!user?.token) return;
       setLoading(true);
       try {
         const res = await axios.get(`${process.env.REACT_APP_API}/api/tasks/${taskId}/comments`, {
@@ -22,31 +22,44 @@ const TaskComments = ({ taskId, user, socket }) => {
       } catch {}
       setLoading(false);
     };
+
     fetchComments();
+
     if (socket) {
       socket.on("task_comment_added", ({ taskId: changedId, comment }) => {
-        if (changedId === taskId) setComments(c => [...c, comment]);
+        if (changedId === taskId) {
+          setComments(currentComments => {
+            // Check if comment already exists to prevent duplicates
+            const exists = currentComments.find(c => 
+              c._id === comment._id || 
+              (c.user?._id === comment.user?._id && c.text === comment.text && c.createdAt === comment.createdAt)
+            );
+            return exists ? currentComments : [...currentComments, comment];
+          });
+        }
       });
       return () => socket.off("task_comment_added");
     }
-  }, [taskId, user.token, socket]);
+  }, [taskId, user?.token, socket]);
 
   const handleAdd = async e => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() || !user?.token) return;
     try {
-      const res = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_API}/api/tasks/${taskId}/comments`,
         { text },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       setText("");
-      setComments(c => [...c, res.data]);
+      // Don't manually add to comments here, let socket handle it to avoid duplicates
     } catch {}
   };
 
+  if (!user?.token) return null; // Optionally show a message like: <div>Please log in to view comments.</div>
+
   return (
-    <div style={{ width: "100%", marginTop: 12 }}>
+    <div style={{ width: "100%", marginTop: 12 }} onClick={e => e.stopPropagation()}>
       <div style={{ fontWeight: 600, marginBottom: 6 }}>Comments</div>
       <div style={{ maxHeight: 120, overflowY: "auto", marginBottom: 8 }}>
         {loading ? (
@@ -54,14 +67,20 @@ const TaskComments = ({ taskId, user, socket }) => {
         ) : comments.length === 0 ? (
           <div style={{ color: "#888" }}>No comments yet.</div>
         ) : (
-          comments.map((c, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
+          comments.map((c) => (
+            <div key={c._id || `${c.user?._id}-${c.createdAt}`} style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
               {c.user && c.user.email && (
-                <img src={getAvatarUrl(c.user.email)} alt="avatar" style={{ width: 24, height: 24, borderRadius: "50%", marginRight: 8 }} />
+                <img
+                  src={getAvatarUrl(c.user.email)}
+                  alt="avatar"
+                  style={{ width: 24, height: 24, borderRadius: "50%", marginRight: 8 }}
+                />
               )}
               <div style={{ fontWeight: 500, marginRight: 6 }}>{c.user?.username || c.user?.email || "User"}:</div>
               <div style={{ color: "#333" }}>{c.text}</div>
-              <div style={{ marginLeft: 8, fontSize: 11, color: "#aaa" }}>{c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}</div>
+              <div style={{ marginLeft: 8, fontSize: 11, color: "#aaa" }}>
+                {c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
+              </div>
             </div>
           ))
         )}

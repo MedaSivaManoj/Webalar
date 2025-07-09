@@ -1,7 +1,7 @@
 import React from "react";
 import TaskCard from "./TaskCard";
 
-const Column = ({ status, tasks, onDrop, socket, user, setEditTask, setShowModal }) => {
+const Column = ({ status, tasks, onDrop, socket, user, setEditTask, setShowModal, columnStyle }) => {
   const handleDrop = (e) => {
     e.preventDefault();
     onDrop(e, status);
@@ -16,9 +16,11 @@ const Column = ({ status, tasks, onDrop, socket, user, setEditTask, setShowModal
     setShowModal(true);
   };
 
+  const displayStatus = status === "Todo" ? "To Do" : status;
+
   return (
-    <div className="column" onDrop={handleDrop} onDragOver={handleDragOver}>
-      <h3>{status}</h3>
+    <div className="column" onDrop={handleDrop} onDragOver={handleDragOver} style={columnStyle}>
+      <h3>{displayStatus}</h3>
       {tasks.map((task) => (
         <TaskCard
           key={task._id}

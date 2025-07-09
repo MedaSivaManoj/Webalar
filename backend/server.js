@@ -55,10 +55,7 @@ app.use("/api/board", boardRoutes); // Use board routes
 
 // MongoDB connection and server start
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
     server.listen(process.env.PORT || 5000, () => {
