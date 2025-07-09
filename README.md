@@ -1,124 +1,107 @@
-# Real-Time Collaborative Kanban Board
+# Real-Time Collaborative To-Do Board
 
-## 🚀 Project Overview
-
-This is a full-stack, real-time, collaborative Kanban board application designed to streamline task management and team workflow. It provides an intuitive and interactive interface where users can create, assign, and track tasks seamlessly. The application is built with a modern tech stack, focusing on performance, real-time capabilities, and a user-friendly experience. It features advanced functionalities like smart task assignment and optimistic UI updates with conflict resolution, making it a powerful tool for team productivity.
+## Project Overview
+A modern, full-stack Kanban board application for task management and team collaboration. Features include real-time updates, analytics dashboard, activity log, card flip UI, comments, attachments, due dates, smart assignment, conflict handling, public board sharing, and full mobile responsiveness.
 
 The frontend is deployed on **Vercel** and the backend on **Render**.
 
-## 🛠️ Tech Stack
+## Tech Stack
+- **Frontend:** React, Chart.js, React Chart.js 2, CSS (custom, responsive, dark mode)
+- **Backend:** Node.js, Express, MongoDB (Mongoose), Socket.io
+- **Deployment:** Render (backend), Vercel (frontend) or your own host
 
-### Frontend
-*   **React.js**: A JavaScript library for building user interfaces.
-*   **Socket.IO Client**: Enables real-time, bidirectional event-based communication.
-*   **React Router**: For declarative routing in the React application.
-*   **Axios**: A promise-based HTTP client for making requests to the backend.
-*   **CSS3**: For styling and creating a modern, responsive design.
-
-### Backend
-*   **Node.js**: A JavaScript runtime built on Chrome's V8 JavaScript engine.
-*   **Express.js**: A minimal and flexible Node.js web application framework.
-*   **MongoDB**: A NoSQL database for storing application data.
-*   **Mongoose**: An ODM (Object Data Modeling) library for MongoDB and Node.js.
-*   **Socket.IO**: For enabling real-time collaboration features.
-*   **JSON Web Tokens (JWT)**: For secure user authentication and authorization.
-*   **CORS**: To enable cross-origin resource sharing between the frontend and backend.
-
-## ⚙️ Setup and Installation
-
-To get the project running locally, follow these steps:
+## Setup & Installation
 
 ### Prerequisites
-*   Node.js and npm (or yarn) installed.
-*   A running MongoDB instance (either locally or on a cloud service like MongoDB Atlas).
+- Node.js (v16+ recommended)
+- npm or yarn
+- MongoDB Atlas account (or local MongoDB)
 
-### Backend Setup
-1.  **Navigate to the backend directory:**
-    ```bash
-    cd backend
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Create a `.env` file** in the `backend` directory and add the following environment variables:
-    ```env
-    MONGO_URI=<your_mongodb_connection_string>
-    JWT_SECRET=<a_strong_secret_key_for_jwt>
-    PORT=5000
-    ```
-4.  **Start the backend server:**
-    ```bash
-    npm start
-    ```
-    The server will be running on `http://localhost:5000`.
+### 1. Clone the repository
+```sh
+git clone https://github.com/MedaSivaManoj/Webalar.git
+cd project-root
+```
 
-### Frontend Setup
-1.  **Navigate to the frontend directory:**
-    ```bash
-    cd frontend
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Create a `.env` file** in the `frontend` directory and add the following environment variable to connect to your local backend:
-    ```env
-    REACT_APP_API=http://localhost:5000
-    ```
-4.  **Start the frontend application:**
-    ```bash
-    npm start
-    ```
-    The application will open in your browser at `http://localhost:3000`.
+### 2. Environment Variables
 
-## ✨ Features and Usage
+#### Backend (`backend/.env`)
+Create a `.env` file in the `backend/` directory with the following variables:
+```
+MONGO_URI=your_mongodb_connection_string   # MongoDB Atlas or local connection string
+JWT_SECRET=your_jwt_secret                # Any strong random string for JWT signing
+CLIENT_URL=http://localhost:3000          # The URL of your frontend (for CORS)
+```
+- **Never commit your `.env` file or secrets to version control.**
+- For production, set these variables in your Render (or other host) dashboard.
 
-*   **User Authentication**: Secure sign-up and login system. Only authenticated users can access the board.
-*   **Real-time Collaboration**: Any changes to tasks (creation, updates, deletion, moving columns) are instantly broadcast to all connected users.
-*   **Task Management**:
-    *   **Create Tasks**: Click the "New Task" button to open a modal and add a new task with a title, description, priority, and due date.
-    *   **Update Tasks**: Click on a task to edit its details.
-    *   **Delete Tasks**: Remove tasks that are no longer needed.
-*   **Drag & Drop**: Intuitively move tasks between the "Todo", "In Progress", and "Done" columns.
-*   **Activity Log**: A real-time log panel shows a history of all actions performed on the board, such as task creation, assignment changes, and status updates.
-*   **Filtering and Searching**: Easily find tasks by searching for titles or filtering by assignee, status, priority, or overdue status.
-*   **Responsive Design**: The application is fully responsive and works well on both desktop and mobile devices.
-*   **Dark Mode & Theming**: Switch between light and dark themes and choose an accent color to personalize your experience.
+#### Frontend (`frontend/.env`)
+Create a `.env` file in the `frontend/` directory with:
+```
+REACT_APP_API=http://localhost:5000        # The URL of your backend API
+```
+- For production, set `REACT_APP_API` to your deployed backend URL (e.g., `https://your-backend.onrender.com`).
+- **Never expose secrets or private keys in the frontend `.env` file.**
+
+### 3. Install dependencies
+```sh
+cd backend
+npm install
+cd ../frontend
+npm install
+```
+
+### 4. Run the app locally
+- **Backend:**
+  ```sh
+  cd backend
+  npm start
+  # or: npm run dev
+  ```
+- **Frontend:**
+  ```sh
+  cd frontend
+  npm start
+  ```
+- Visit [http://localhost:3000](http://localhost:3000)
+
+## Features & Usage Guide
+- **Kanban Board:** Drag-and-drop tasks between columns (To Do, In Progress, Done). Each task card can be moved by dragging, and columns update in real time for all users.
+- **Card Flip UI:** Click the flip button on a task card to view more details, including comments, attachments, and metadata. The card flips with a smooth animation.
+- **Comments & Attachments:** Add, view, and remove comments and file attachments for each task. All changes are instantly reflected for all collaborators.
+- **Smart Assign:** Assigns a task to the most available user based on their current active workload, helping balance tasks across the team.
+- **Conflict Handling:** If two users edit the same task at the same time, a conflict modal appears, allowing you to review and resolve differences before saving.
+- **Activity Log:** See the last 40 actions (comments, status changes, attachments, assignments, etc.) with timestamps and user info, so you always know what's happening.
+- **Analytics Dashboard:** Visualize task status, priority, user workload, overdue tasks, and average completion times with interactive charts and graphs.
+- **Public Board:** Share a read-only board link for public viewing, making it easy to keep stakeholders informed without requiring them to log in.
+- **Mobile Responsive:** Fully optimized for all devices. On mobile, columns are stacked vertically for easy scrolling and interaction.
+- **Dark Mode:** Toggle for accessible, modern UI. All features and charts are styled for both light and dark themes.
+
+## Smart Assign Logic
+When a user clicks "Smart Assign" on a task, the backend:
+1. Counts the number of active (To Do + In Progress) tasks for each user.
+2. Assigns the task to the user with the fewest active tasks.
+3. If multiple users are tied, picks one at random.
+4. Updates the task and notifies all clients in real time.
+
+This ensures fair distribution of work and helps prevent overload for any single team member.
+
+## Conflict Handling Logic
+- When two users try to update the same task at the same time, the backend detects a version conflict using a version or timestamp check.
+- The frontend displays a conflict modal showing both the user's changes and the latest version from the server.
+- The user can choose which version to keep or manually merge changes before saving.
+- This prevents accidental overwrites and ensures data integrity in collaborative environments.
+
+## Deployment
+- **Backend:** Deploy to [Render](https://render.com/) or similar. Set environment variables in the Render dashboard.
+- **Frontend:** Deploy to [Vercel](https://vercel.com/) or [Netlify](https://netlify.com/). Set `REACT_APP_API` to your backend URL.
+
+## Live Demo & Video
+- **Live App:** [https://webalar-mauve.vercel.app](https://webalar-mauve.vercel.app)
+  - Explore the full Kanban experience, including real-time collaboration, analytics, and public board sharing. No login required for public boards.
+- **Demo Video:** [YouTube Demo](https://youtu.be/your-demo-video)
+  - Watch a walkthrough of all major features, including Smart Assign, conflict resolution, analytics, and mobile usage.
 
 ---
 
-## 🧠 Advanced Logic Explained
-
-### Smart Assign
-
-The **Smart Assign** feature is designed to improve team efficiency by automatically assigning new or unassigned tasks to the team member who currently has the lightest workload.
-
-**How it works:**
-1.  When a user clicks the "Smart Assign" button on a task, a request is sent to the backend.
-2.  The `smartAssign` utility function queries the database to find all registered users.
-3.  For each user, it calculates the number of tasks currently assigned to them that are **not** in the "Done" status.
-4.  It then identifies the user with the minimum number of active tasks.
-5.  This "least busy" user is then assigned to the task, and the change is broadcast in real-time to all users.
-
-This logic ensures a more balanced distribution of work across the team, preventing bottlenecks and helping to maintain a steady workflow.
-
-### Optimistic UI & Conflict Handling
-
-To provide a fast and seamless user experience, the application uses an **optimistic UI** approach. When a user makes a change (e.g., moving a task), the UI updates instantly without waiting for the server's confirmation. This makes the app feel incredibly responsive.
-
-However, this can lead to conflicts if two users modify the same task at the same time. The application has a robust system to handle this:
-
-**How it works:**
-1.  **Versioning**: Each task in the database has a `version` number.
-2.  **Client-side Update**: When a user updates a task, the frontend sends the task's current `version` number along with the update request to the backend.
-3.  **Server-side Validation**:
-    *   The backend retrieves the task from the database and compares its `version` number with the one sent by the client.
-    *   If the versions match, the update is safe. The backend applies the change and increments the task's `version` number in the database.
-    *   If the versions **do not match**, it means another user has updated the task in the meantime. The backend rejects the update and sends a `409 Conflict` error back to the client, along with the latest version of the task from the database.
-4.  **Conflict Resolution**:
-    *   When the frontend receives a `409 Conflict` error, it displays a **Conflict Modal**.
-    *   This modal shows the user the difference between their version and the server's version of the task.
-    *   The user is given the choice to either **overwrite** the server's version with their changes or **cancel** their action and accept the server's version.
-
-This versioning and conflict resolution mechanism ensures data integrity and prevents users from accidentally overwriting each other's work, which is crucial in a collaborative environment.
+For any issues or contributions, please open an issue or pull request on GitHub.

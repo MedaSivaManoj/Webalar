@@ -319,20 +319,42 @@ const Board = () => {
       )}
       {conflict && (
         <ConflictModal
-          conflict={conflict}
-          onResolve={async (resolution) => {
+          serverTask={conflict.server}
+          clientTask={conflict.client}
+          onMerge={async () => {
+            // Merge: combine fields, prefer client changes, keep server version for versioning
+            const merged = {
+              ...conflict.server,
+              ...conflict.client,
+              version: conflict.server.version,
+            };
             try {
               await axios.put(
-                `${process.env.REACT_APP_API}/api/tasks/${resolution._id}`,
-                { ...resolution, conflictResolution: true },
+                `${process.env.REACT_APP_API}/api/tasks/${merged._id}`,
+                merged,
                 { headers: { Authorization: `Bearer ${user.token}` } }
               );
             } catch (err) {
-              alert("Failed to resolve conflict. Please refresh and try again.");
+              alert("Failed to merge. Please refresh and try again.");
             }
             setConflict(null);
+            fetchTasks();
           }}
-          onClose={() => setConflict(null)}
+          onOverwrite={async () => {
+            // Overwrite: force client version
+            try {
+              await axios.put(
+                `${process.env.REACT_APP_API}/api/tasks/${conflict.client._id}`,
+                { ...conflict.client, version: conflict.server.version },
+                { headers: { Authorization: `Bearer ${user.token}` } }
+              );
+            } catch (err) {
+              alert("Failed to overwrite. Please refresh and try again.");
+            }
+            setConflict(null);
+            fetchTasks();
+          }}
+          onCancel={() => setConflict(null)}
         />
       )}
       {isShareModalOpen && (
