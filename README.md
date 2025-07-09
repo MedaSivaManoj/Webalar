@@ -99,7 +99,7 @@ This ensures fair distribution of work and helps prevent overload for any single
 ## Live Demo & Video
 - **Live App:** [https://webalar-mauve.vercel.app](https://webalar-mauve.vercel.app)
   - Explore the full Kanban experience, including real-time collaboration, analytics, and public board sharing. No login required for public boards.
-- **Demo Video:** [YouTube Demo](https://youtu.be/your-demo-video)
+- **Demo Video:** [Demo Video](https://drive.google.com/file/d/1w75fWPq6c2qpSVEda4wRm4KkLP6FJRBt/view?usp=drive_link)
   - Watch a walkthrough of all major features, including Smart Assign, conflict resolution, analytics, and mobile usage.
 
 ---
