@@ -14,6 +14,14 @@ exports.uploadAttachment = async (req, res) => {
     task.attachments.push(attachment);
     await task.save();
     await task.populate({ path: 'attachments.uploadedBy', select: 'username email' });
+    // Log the attachment add action
+    const username = req.user.username || req.user.email || 'User';
+    await Log.create({
+      user: req.user._id,
+      action: `${username} attached ${attachment.filename} on ${task.title}`,
+      taskId: task._id
+    });
+    getIO().emit("log_updated");
     res.status(201).json(attachment);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -30,6 +38,43 @@ exports.getAttachments = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Remove an attachment from a task
+exports.removeAttachment = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    const attachmentId = req.params.attachmentId;
+    const attachment = task.attachments.id(attachmentId);
+
+    if (!attachment) {
+      return res.status(404).json({ message: "Attachment not found" });
+    }
+
+    // Save info for log before removal
+    const removedAttachment = attachment ? { ...attachment.toObject() } : null;
+    // Mongoose sub-document removal
+    task.attachments.pull(attachmentId);
+    task.version += 1; // Increment version on change
+    await task.save();
+    // Log the attachment removal action
+    if (removedAttachment) {
+      const username = req.user.username || req.user.email || 'User';
+      await Log.create({
+        user: req.user._id,
+        action: `${username} removed ${removedAttachment.filename} on ${task.title}`,
+        taskId: task._id
+      });
+      getIO().emit("log_updated");
+    }
+    getIO().emit("task_changed");
+    res.status(200).json({ message: "Attachment removed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Add a comment to a task
 exports.addComment = async (req, res) => {
   try {
@@ -45,9 +90,19 @@ exports.addComment = async (req, res) => {
     task.comments.push(comment);
     await task.save();
     await task.populate({ path: 'comments.user', select: 'username email' });
+    // Get the newly added comment with populated user data
+    const newComment = task.comments[task.comments.length - 1];
+    // Log the comment action
+    const username = req.user.username || req.user.email || 'User';
+    await Log.create({
+      user: req.user._id,
+      action: `${username} commented "${text}" on ${task.title}`,
+      taskId: task._id
+    });
+    getIO().emit("log_updated");
     // Real-time update
-    getIO().emit("task_comment_added", { taskId: task._id, comment });
-    res.status(201).json(comment);
+    getIO().emit("task_comment_added", { taskId: task._id, comment: newComment });
+    res.status(201).json(newComment);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

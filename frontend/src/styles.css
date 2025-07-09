@@ -10,6 +10,74 @@
 .modal-pop:focus {
   outline: 2.5px solid #1976d2;
 }
+
+/* Dark mode styles */
+body.dark-mode {
+  background: linear-gradient(120deg, #23272f 0%, #222b38 100%) !important;
+  color: #fff;
+}
+
+body.dark-mode .column {
+  background: linear-gradient(135deg, #23272f 80%, rgba(33, 150, 243, 0.1) 100%);
+  color: #fff;
+}
+
+body.dark-mode .column h3 {
+  color: #fff;
+}
+
+body.dark-mode .task-card {
+  background: #2a2f3a;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
+body.dark-mode .task-card-front {
+  background: #2a2f3a;
+  color: #fff;
+}
+
+body.dark-mode .task-card-back {
+  background: #1e2328;
+  color: #90caf9;
+}
+
+body.dark-mode .log-panel {
+  background: #2a2f3a;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
+body.dark-mode .log-panel li {
+  border-bottom: 1px solid #37474f;
+}
+
+body.dark-mode .modal {
+  background: #2a2f3a;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
+body.dark-mode .modal input,
+body.dark-mode .modal textarea,
+body.dark-mode .modal select {
+  background: #1e2328;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
+body.dark-mode .auth-container {
+  background: #2a2f3a;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
+body.dark-mode .auth-form input {
+  background: #1e2328;
+  color: #fff;
+  border: 1px solid #37474f;
+}
+
 @media (max-width: 600px) {
   .task-card-inner {
     width: 98vw !important;

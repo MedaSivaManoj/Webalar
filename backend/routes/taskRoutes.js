@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const {
@@ -10,13 +9,16 @@ const {
   addComment,
   getComments,
   uploadAttachment,
-  getAttachments
+  getAttachments,
+  removeAttachment
 } = require("../controllers/taskController");
 const upload = require("../utils/upload");
 const { protect } = require("../middleware/authMiddleware");
 // Attachments endpoints
 router.post('/:id/attachments', protect, upload.single('file'), uploadAttachment);
 router.get('/:id/attachments', protect, getAttachments);
+router.delete('/:id/attachments/:attachmentId', protect, removeAttachment);
+
 // Comments endpoints
 router.post('/:id/comments', protect, addComment);
 router.get('/:id/comments', protect, getComments);

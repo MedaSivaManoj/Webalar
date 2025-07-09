@@ -1,51 +1,49 @@
 import React from "react";
 
 const LogPanel = ({ logs }) => {
+  // Show only the last 40 logs
+  const displayLogs = logs.slice(-40);
   return (
     <div className="log-panel">
       <h3>Activity Log</h3>
       <ul>
-        {logs.map((log) => {
-          // Remove duplicate username and task title for Smart Assign
+        {displayLogs.map((log) => {
           let action = log.action;
           let showTaskTitle = true;
           let showUser = true;
-          // Remove duplicate username at the start of action string
           if (log.user?.username) {
             const userRegex = new RegExp(`^${log.user.username}\\s+`, 'i');
             action = action.replace(userRegex, '');
           }
-          // Regex to match: username used Smart Assign and 'Task Title' was assigned to ...
-          const smartAssignMatch = action.match(/^(\w+) used Smart Assign and '(.+)' was assigned to (.+)\.$/);
+          const smartAssignMatch = action.match(/^(w+) used Smart Assign and '(.+)' was assigned to (.+)\.$/);
           if (smartAssignMatch) {
-            // Only show: <username> used Smart Assign and <b>Task Title</b> was assigned to <user>.
             action = `used Smart Assign and <strong>${smartAssignMatch[2]}</strong> was assigned to ${smartAssignMatch[3]}.`;
             showTaskTitle = false;
-            showUser = true; // Username will be shown only once
+            showUser = true;
           } else {
-            // Bold the task title in other actions if present in single quotes
             action = action.replace(/'([^']+)'/, "<strong>$1</strong>");
-            // If action is a create or delete and task title matches log.taskId.title, don't show the trailing 'on ...'
             const createOrDelete = /^(<strong>\w+<\/strong> )?(created|deleted|changed|assigned)/i.test(action);
             if (createOrDelete && log.taskId && log.taskId.title) {
-              // Remove ' on <strong>Task Title</strong>' if present at the end
               showTaskTitle = false;
             }
           }
+          // Bold everything except the timestamp, use fontWeight 600 for all
           return (
             <li key={log._id}>
-              <span className="timestamp">
+              <span className="timestamp" style={{ fontWeight: 400 }}>
                 {new Date(log.timestamp || log.createdAt).toLocaleString()}
               </span>{" "}
-              {showUser && <span><strong>{log.user?.username || "Unknown"}</strong> </span>}
-              <span dangerouslySetInnerHTML={{ __html: action }} />
-              {/* Only show task title at end if not Smart Assign and not already in action */}
-              {showTaskTitle && log.taskId && log.taskId.title &&
-                !/used Smart Assign/.test(action) &&
-                !(new RegExp(`<strong>${log.taskId.title}<[\\/]strong>`)).test(action) &&
-                !action.includes(log.taskId.title) && (
-                  <span> on <strong>{log.taskId.title}</strong></span>
-              )}
+              <span style={{ fontWeight: 600 }}>
+                {showUser && <span>{log.user?.username || "Unknown"} </span>}
+                <span dangerouslySetInnerHTML={{ __html: action.replace(/<strong>(.*?)<\/strong>/g, '<span style="font-weight:600">$1</span>') }} />
+                {/* Only show task title at end if not Smart Assign and not already in action */}
+                {showTaskTitle && log.taskId && log.taskId.title &&
+                  !/used Smart Assign/.test(action) &&
+                  !(new RegExp(`<strong>${log.taskId.title}<[\\/]strong>`)).test(action) &&
+                  !action.includes(log.taskId.title) && (
+                    <span> on <span style={{ fontWeight: 600 }}>{log.taskId.title}</span></span>
+                )}
+              </span>
             </li>
           );
         })}

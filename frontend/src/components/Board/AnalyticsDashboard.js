@@ -19,20 +19,25 @@ const AnalyticsDashboard = ({ tasks }) => {
       </div>
     );
   }
-  // Tasks per user
+  // Active tasks per user (To Do and In Progress only)
   const userCounts = {};
   tasks.forEach(t => {
-    const name = t.assignedTo?.username || t.assignedTo?.email || "Unassigned";
-    userCounts[name] = (userCounts[name] || 0) + 1;
+    if (t.status === "Todo" || t.status === "In Progress") {
+      const name = t.assignedTo?.username || t.assignedTo?.email || "Unassigned";
+      userCounts[name] = (userCounts[name] || 0) + 1;
+    }
   });
   // Status breakdown
   const statusCounts = { Todo: 0, "In Progress": 0, Done: 0 };
   tasks.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
   // Priority breakdown
-  const priorityCounts = {};
+  const priorityLabels = { 0: "Low", 1: "Medium", 2: "High" };
+  const priorityCounts = { Low: 0, Medium: 0, High: 0, Unspecified: 0 };
   tasks.forEach(t => {
-    const p = t.priority || "Unspecified";
-    priorityCounts[p] = (priorityCounts[p] || 0) + 1;
+    if (t.priority === 0 || t.priority === "0") priorityCounts.Low++;
+    else if (t.priority === 1 || t.priority === "1") priorityCounts.Medium++;
+    else if (t.priority === 2 || t.priority === "2") priorityCounts.High++;
+    else priorityCounts.Unspecified++;
   });
 
   // Overdue (robust date handling)
@@ -100,12 +105,15 @@ const AnalyticsDashboard = ({ tasks }) => {
       <h2 style={{ fontWeight: 700, color: '#1976d2', marginBottom: 24, textAlign: 'center' }}>Board Analytics</h2>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
         <div style={{ flex: '1 1 300px', maxWidth: '450px', minWidth: '280px' }}>
-          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 12 }}>Tasks per User</h3>
+          <h3 style={{ textAlign: 'center', fontWeight: 600, color: '#1976d2', marginBottom: 4 }}>
+            Active Tasks per User<br/>
+            <span style={{ fontWeight: 400, fontSize: 15 }}>(To Do + In Progress)</span>
+          </h3>
           <div style={{ height: 250 }}>
             <Bar
               data={{
                 labels: Object.keys(userCounts),
-                datasets: [{ label: 'Tasks per User', data: Object.values(userCounts), backgroundColor: '#1976d2' }],
+                datasets: [{ label: 'Active Tasks per User', data: Object.values(userCounts), backgroundColor: '#1976d2' }],
               }}
               options={{ plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }}
             />
