@@ -163,23 +163,37 @@ body {
 }
 
 .column {
-  flex: 1;
-  min-width: 280px;
-  background: #e3f2fd;
-  padding: 1rem;
-  border-radius: 8px;
+flex: 1 1 320px;
+min-width: 280px;
+max-width: 400px;
+background: #e3f2fd;
+padding: 1rem;
+border-radius: 8px;
+margin: 0 4px;
+box-sizing: border-box;
+display: flex;
+flex-direction: column;
+overflow-y: auto;
+max-height: 80vh;
 }
 
 .task-card {
-  background: white;
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border-radius: 6px;
-  box-shadow: 0 0 5px #ccc;
-  cursor: grab;
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0.2, 0.2, 1),
-    box-shadow 0.3s;
+background: white;
+padding: 1rem;
+margin: 0.5rem 0;
+border-radius: 6px;
+box-shadow: 0 0 5px #ccc;
+cursor: grab;
+transition:
+  transform 0.3s cubic-bezier(0.4, 0.2, 0.2, 1),
+  box-shadow 0.3s;
+box-sizing: border-box;
+width: 100%;
+max-width: 100%;
+overflow: hidden;
+min-height: 180px;
+display: flex;
+flex-direction: column;
 }
 
 .task-card:active {
@@ -346,15 +360,30 @@ body {
 }
 
 @media (max-width: 800px) {
-  .columns {
-    flex-direction: column;
-    gap: 1.5rem;
+  .columns, .board-columns-responsive {
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    align-items: flex-start !important;
+    padding: 0 2px !important;
+    min-width: 0 !important;
+    width: 100vw !important;
+    box-sizing: border-box;
   }
   .column {
-    min-width: 90vw;
+    min-width: 85vw !important;
+    max-width: 95vw !important;
+    margin: 0 2px !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    padding: 0.5rem !important;
   }
-  .board-container {
-    padding: 0.5rem;
+  .task-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 15px !important;
+    margin: 0.4rem 0 !important;
+    padding: 0.7rem !important;
   }
 }
 
